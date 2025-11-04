@@ -1,10 +1,11 @@
 package org.example;
 
 import org.example.Amazon.Amazon;
+import org.example.Amazon.Cost.ItemType;
 import org.example.Amazon.Cost.PriceRule;
 import org.example.Amazon.Item;
 import org.example.Amazon.ShoppingCart;
-import org.example.Amazon.Cost.ItemType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class AmazonIntegrationTest {
 
@@ -21,7 +23,6 @@ public class AmazonIntegrationTest {
 
     @BeforeEach
     void setUp() {
-
         cart = new ShoppingCart() {
             private final List<Item> items = new ArrayList<>();
 
@@ -41,7 +42,6 @@ public class AmazonIntegrationTest {
             }
         };
 
-
         PriceRule discountRule = items -> items.stream()
                 .mapToDouble(i -> i.getPricePerUnit() * i.getQuantity())
                 .sum() * 0.9;
@@ -49,9 +49,13 @@ public class AmazonIntegrationTest {
         amazon = new Amazon(cart, List.of(discountRule));
     }
 
+
+    // SPECIFICATION-BASED TESTS
+
+
     @Test
-    @DisplayName("specification-based: calculates discounted total price correctly")
-    void testCalculateTotalWithDiscount() {
+    @DisplayName("specification-based: calculates discounted total correctly")
+    void testDiscountedTotal() {
         cart.add(new Item(ItemType.ELECTRONIC, "Headphones", 1, 100.0));
         cart.add(new Item(ItemType.ELECTRONIC, "Keyboard", 1, 50.0));
 
@@ -60,13 +64,35 @@ public class AmazonIntegrationTest {
     }
 
     @Test
-    @DisplayName("structural-based: ensures cart retains all items")
-    void testMultipleAdds() {
+    @DisplayName("specification-based: adds multiple items and total updates")
+    void testTotalIncreasesWithItems() {
+        cart.add(new Item(ItemType.OTHER, "Mousepad", 1, 10.0));
+        double total1 = amazon.calculate();
+
+        cart.add(new Item(ItemType.OTHER, "Monitor Stand", 1, 30.0));
+        double total2 = amazon.calculate();
+
+        assertTrue(total2 > total1);
+    }
+
+
+    // STRUCTURAL-BASED TESTS
+
+
+    @Test
+    @DisplayName("structural-based: ensures all items are stored correctly")
+    void testCartRetainsItems() {
         cart.add(new Item(ItemType.OTHER, "Mouse", 1, 25.0));
         cart.add(new Item(ItemType.OTHER, "Monitor", 1, 200.0));
 
+        assertEquals(2, cart.numberOfItems());
+        assertTrue(cart.getItems().stream().anyMatch(i -> i.getName().equals("Monitor")));
+    }
+
+    @Test
+    @DisplayName("structural-based: empty cart returns zero total")
+    void testEmptyCartTotal() {
         double total = amazon.calculate();
-        assertTrue(total > 0);
-        assertEquals(2, cart.getItems().size());
+        assertEquals(0.0, total);
     }
 }

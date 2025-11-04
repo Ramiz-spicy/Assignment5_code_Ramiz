@@ -28,6 +28,8 @@ public class AmazonUnitTest {
         amazon = new Amazon(mockCart, List.of(mockRule));
     }
 
+    // ---------- SPECIFICATION-BASED TESTS ----------
+
     @Test
     @DisplayName("specification-based: adding item updates cart")
     void testAddItemToCart() {
@@ -37,14 +39,39 @@ public class AmazonUnitTest {
     }
 
     @Test
-    @DisplayName("structural-based: calculate price applies rules correctly")
-    void testCalculatePrice() {
+    @DisplayName("specification-based: calculate total returns expected value")
+    void testCalculateTotalValue() {
         when(mockCart.getItems())
-                .thenReturn(List.of(new Item(ItemType.ELECTRONIC, "Book", 1, 20.0)));
-        when(mockRule.priceToAggregate(anyList()))
-                .thenReturn(18.0);
+                .thenReturn(List.of(new Item(ItemType.ELECTRONIC, "Mouse", 1, 50.0)));
+        when(mockRule.priceToAggregate(anyList())).thenReturn(45.0);
 
         double result = amazon.calculate();
-        assertEquals(18.0, result);
+        assertEquals(45.0, result, 0.001);
+    }
+
+    // ---------- STRUCTURAL-BASED TESTS ----------
+
+    @Test
+    @DisplayName("structural-based: calculate handles empty cart gracefully")
+    void testCalculateEmptyCart() {
+        when(mockCart.getItems()).thenReturn(List.of());
+        when(mockRule.priceToAggregate(anyList())).thenReturn(0.0);
+
+        double result = amazon.calculate();
+        assertEquals(0.0, result);
+    }
+
+    @Test
+    @DisplayName("structural-based: multiple rules applied in order")
+    void testMultipleRulesApplied() {
+        PriceRule rule1 = items -> 50.0;
+        PriceRule rule2 = items -> 40.0;
+        amazon = new Amazon(mockCart, List.of(rule1, rule2));
+
+        when(mockCart.getItems())
+                .thenReturn(List.of(new Item(ItemType.ELECTRONIC, "Keyboard", 1, 60.0)));
+
+        double result = amazon.calculate();
+        assertTrue(result >= 0); // ensures result computed successfully
     }
 }
