@@ -98,7 +98,7 @@ public class BarnesAndNobleTest {
         assertEquals(80, summary.getTotalPrice()); // (50 + 30)
         assertTrue(summary.getUnavailable().containsKey(new Book("789", 40, 0)));
     }
-
+// for part 2
     @Test
     @DisplayName("structural-based: ensures addUnavailable and addToTotalPrice are called properly")
     void testAddUnavailableAndTotalPriceIntegration() {
