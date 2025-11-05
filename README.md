@@ -25,8 +25,6 @@ Each run of the workflow does the following:
 ## Build Status
 All of my recent workflow runs have passed successfully.  
 You can confirm this by checking the latest GitHub Actions run here:  
-**Status:** Success (All tests and style checks passed)
 
----
 
 
